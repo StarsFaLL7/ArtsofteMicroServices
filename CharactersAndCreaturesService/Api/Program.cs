@@ -1,5 +1,5 @@
-using IdentityDal;
-using IdentityLogic;
+using Application;
+using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +9,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
-builder.Services.TryAddLogic();
-builder.Services.TryAddDal();
+builder.Services.TryAddApplicationLayer();
+builder.Services.TryAddInfrastructure();
 
 var app = builder.Build();
 
