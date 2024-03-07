@@ -26,3 +26,5 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+// TODO: Удалить пользователя из списка друзей (POST)
