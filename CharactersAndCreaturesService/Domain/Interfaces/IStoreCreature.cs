@@ -4,13 +4,13 @@ namespace Domain.Interfaces;
 
 public interface IStoreCreature
 {
-    Task<bool> IsExist(Guid creatureId);
+    Task<bool> IsExistAsync(Guid creatureId);
     
     Task SaveAsync(Creature creature);
 
     Task<Creature[]> GetPlayersCreaturesAsync(Guid userId);
 
-    Task RemoveAsync(Creature creature);
+    Task RemoveAsync(Guid creatureId);
 
     Task<Creature> GetByIdAsync(Guid id);
 }

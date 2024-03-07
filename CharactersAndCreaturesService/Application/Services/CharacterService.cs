@@ -26,7 +26,7 @@ public class CharacterService : ICharacterService
     {
         if (await _storeCharacter.IsExistAsync(character.Id))
         {
-            var aggregatedInfo = await GetAggregatedInfoAsync(character.Id);
+            var aggregatedInfo = await GetInfoAsync(character.Id);
             aggregatedInfo.Name = character.Name;
             aggregatedInfo.ImagePath = character.ImagePath;
             aggregatedInfo.Level = character.Level;

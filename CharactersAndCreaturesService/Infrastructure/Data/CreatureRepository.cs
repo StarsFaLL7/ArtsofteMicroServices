@@ -8,7 +8,7 @@ public class CreatureRepository : IStoreCreature
 {
     private readonly ConcurrentDictionary<Guid, Creature> _store = new();
 
-    public async Task<bool> IsExist(Guid creatureId)
+    public async Task<bool> IsExistAsync(Guid creatureId)
     {
         return _store.ContainsKey(creatureId);
     }
@@ -24,9 +24,9 @@ public class CreatureRepository : IStoreCreature
         return res;
     }
 
-    public async Task RemoveAsync(Creature creature)
+    public async Task RemoveAsync(Guid creatureId)
     {
-        if (!_store.TryRemove(creature.Id, out _))
+        if (!_store.TryRemove(creatureId, out _))
         {
             throw new Exception("Существо не найдено");
         }

@@ -1,10 +1,12 @@
 ﻿using Api.Controllers.Ability.Responses;
 using Api.Controllers.Character.Responses;
+using Api.Controllers.Creature.Responses;
 using Api.Controllers.OtherResponses;
 using Api.Controllers.OtherResponses.CharacteristicsSet;
 using Api.Controllers.OtherResponses.Items;
 using Api.Controllers.OtherResponses.SkillSet;
 using Domain.Entities;
+using Domain.Enums;
 
 namespace Api;
 
@@ -92,6 +94,22 @@ public static class ConvertHelper
             Abilities = AbilitiesToInfoResponseArray(character.Abilities),
             InventoryItems = InvItemsToInfoResponseArray(character.InventoryItems),
             Id = character.Id
+        };
+    }
+
+    public static CreatureInfoResponse CreatureToInfoResponse(Creature creature)
+    {
+        return new CreatureInfoResponse
+        {
+            UserId = creature.UserId,
+            ImagePath = creature.ImagePath,
+            Name = creature.Name,
+            MaxHealth = creature.MaxHealth,
+            Health = creature.Health,
+            Armor = creature.Armor,
+            Description = creature.Description,
+            HostilityId = HostilityType.Neutral,
+            CharacteristicsSet = CharacteristicsSetToResponse(creature.CharacteristicsSet)
         };
     }
 }

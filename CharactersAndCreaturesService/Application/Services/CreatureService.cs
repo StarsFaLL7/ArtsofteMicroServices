@@ -17,9 +17,13 @@ public class CreatureService : ICreatureService
     
     public async Task<Guid> CreateOrUpdateAsync(Creature creature)
     {
-        if (await _storeCreature.IsExist(creature.Id))
+        if (await _storeCreature.IsExistAsync(creature.Id))
         {
-            await creature.SaveAsync(_storeCreature);
+            var currentCreature = await _storeCreature.GetByIdAsync(creature.Id);
+            creature.UserId = currentCreature.UserId;
+            creature.CharacteristicsSetId = currentCreature.CharacteristicsSetId;
+            await _storeCreature.RemoveAsync(currentCreature.Id);
+            await _storeCreature.SaveAsync(creature);
         }
         else
         {
@@ -36,6 +40,7 @@ public class CreatureService : ICreatureService
             creature.CharacteristicsSetId = characteristicSet.Id;
             creature.CharacteristicsSet = characteristicSet;
             await _storeCharacteristicsSet.SaveAsync(characteristicSet);
+            await _storeCreature.SaveAsync(creature);
         }
         
         return creature.Id;
@@ -43,17 +48,33 @@ public class CreatureService : ICreatureService
 
     public async Task<Creature> GetInfoAsync(Guid id)
     {
+        return await _storeCreature.GetByIdAsync(id);
+    }
+
+    public async Task<Creature> GetAggregatedInfoAsync(Guid id)
+    {
         var creature = await _storeCreature.GetByIdAsync(id);
         creature.CharacteristicsSet = await _storeCharacteristicsSet.GetByIdAsync(creature.CharacteristicsSetId);
         return creature;
     }
 
-    public async Task DeleteAsync(Creature creature)
+    public async Task RemoveAsync(Guid creatureId)
     {
+        var creature = await _storeCreature.GetByIdAsync(creatureId);
         if (await _storeCharacteristicsSet.IsExist(creature.CharacteristicsSetId))
         {
             await _storeCharacteristicsSet.RemoveAsync(creature.CharacteristicsSetId);
         }
-        await _storeCreature.RemoveAsync(creature);
+        await _storeCreature.RemoveAsync(creature.Id);
+    }
+
+    public async Task<CharacteristicsSet> UpdateCharacteristicsSet(Guid creatureId, CharacteristicsSet characteristicsSet)
+    {
+        var creature = await _storeCreature.GetByIdAsync(creatureId);
+        await _storeCharacteristicsSet.RemoveAsync(creature.CharacteristicsSetId);
+        characteristicsSet.Id = Guid.NewGuid();
+        creature.CharacteristicsSetId = characteristicsSet.Id;
+        await _storeCharacteristicsSet.SaveAsync(characteristicsSet);
+        return characteristicsSet;
     }
 }
