@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Domain.AggregateModels;
 using Domain.Entities;
 using Domain.Interfaces;
 
@@ -35,5 +36,11 @@ public class CreatureRepository : IStoreCreature
     public async Task<Creature> GetByIdAsync(Guid id)
     {
         return _store[id];
+    }
+
+    public async Task<Creature[]> GetCreaturesBySearchAsync(string searchText, int maxCount)
+    {
+        var lowerSearch = searchText.ToLower();
+        return _store.Values.Where(c => c.Name.ToLower().Contains(lowerSearch)).ToArray();
     }
 }

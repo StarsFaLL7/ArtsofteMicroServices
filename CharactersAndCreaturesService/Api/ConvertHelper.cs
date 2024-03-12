@@ -109,7 +109,8 @@ public static class ConvertHelper
             Armor = creature.Armor,
             Description = creature.Description,
             HostilityId = HostilityType.Neutral,
-            CharacteristicsSet = CharacteristicsSetToResponse(creature.CharacteristicsSet)
+            CharacteristicsSet = CharacteristicsSetToResponse(creature.CharacteristicsSet),
+            Id = creature.Id
         };
     }
 }

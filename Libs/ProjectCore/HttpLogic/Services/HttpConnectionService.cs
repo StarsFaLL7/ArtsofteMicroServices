@@ -1,22 +1,18 @@
-﻿using ProjectCore.HttpLogic.Services.Interfaces;
+﻿using System.Net;
+using Polly;
+using Polly.Extensions.Http;
+using Polly.Retry;
+using Polly.Timeout;
+using ProjectCore.HttpLogic.Models;
+using ProjectCore.HttpLogic.Services.Interfaces;
 
 namespace ProjectCore.HttpLogic.Services;
 
-public record struct HttpConnectionData()
-{
-    public TimeSpan? Timeout { get; set; } = null;
-    
-    public CancellationToken CancellationToken { get; set; } = default;
-    
-    public string ClientName { get; set; }
-}
-
 /// <inheritdoc />
-public class HttpConnectionService : IHttpConnectionService
+internal class HttpConnectionService : IHttpConnectionService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-
-    ///
+    
     public HttpConnectionService(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
@@ -38,7 +34,8 @@ public class HttpConnectionService : IHttpConnectionService
     }
 
     /// <inheritdoc />
-    public async Task<HttpResponseMessage> SendRequestAsync(HttpRequestMessage httpRequestMessage, HttpClient httpClient, CancellationToken cancellationToken, HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead)
+    public async Task<HttpResponseMessage> SendRequestAsync(HttpRequestMessage httpRequestMessage, HttpClient httpClient, 
+        CancellationToken cancellationToken, HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead)
     {
         var response = await httpClient.SendAsync(httpRequestMessage, httpCompletionOption, cancellationToken);
         return response;

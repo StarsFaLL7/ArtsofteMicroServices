@@ -17,6 +17,8 @@ public interface IUserLogicManager
     /// </summary>
     Task<UserLogic> GetUserInfoAsync(string username);
 
+    Task<string[]> GetUsernamesByIdsAsync(Guid[] ids);
+
     /// <summary>
     /// Получить список друзей пользователя по его уникальному идентификатору
     /// </summary>

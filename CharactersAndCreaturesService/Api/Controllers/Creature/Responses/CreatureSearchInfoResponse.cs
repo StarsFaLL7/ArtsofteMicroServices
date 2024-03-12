@@ -1,11 +1,12 @@
-﻿using Api.Controllers.OtherResponses.CharacteristicsSet;
-using Domain.Enums;
+﻿using Domain.Enums;
 
 namespace Api.Controllers.Creature.Responses;
 
-public class CreatureInfoResponse
+public class CreatureSearchInfoResponse
 {
     public required Guid Id { get; init; }
+    
+    public required string UserName { get; init; }
     
     public required Guid UserId { get; init; }
     
@@ -21,7 +22,5 @@ public class CreatureInfoResponse
     
     public required string Description { get; init; }
     
-    public required HostilityType HostilityId { get; init; }
-    
-    public required CharacteristicsSetInfoResponse CharacteristicsSet { get; init; }
+    public required HostilityType Hostility { get; init; }
 }

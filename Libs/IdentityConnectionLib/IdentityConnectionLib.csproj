@@ -7,9 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Libs\IdentityConnectionLib\IdentityConnectionLib.csproj" />
-      <ProjectReference Include="..\..\Libs\ProjectCore\ProjectCore.csproj" />
-      <ProjectReference Include="..\Application\Application.csproj" />
+      <ProjectReference Include="..\ProjectCore\ProjectCore.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ProjectCore\ProjectCore.csproj" />
     </ItemGroup>
 
 </Project>

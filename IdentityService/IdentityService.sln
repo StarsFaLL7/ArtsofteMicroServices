@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{E71AFEE6-D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectCore", "..\Libs\ProjectCore\ProjectCore.csproj", "{FB4E48C2-DD93-4821-A4DE-D49464CFDCF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityConnectionLib", "..\Libs\IdentityConnectionLib\IdentityConnectionLib.csproj", "{F55BC932-B8A8-4735-8AA6-D6AECB9C9990}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,8 +34,13 @@ Global
 		{FB4E48C2-DD93-4821-A4DE-D49464CFDCF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB4E48C2-DD93-4821-A4DE-D49464CFDCF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB4E48C2-DD93-4821-A4DE-D49464CFDCF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F55BC932-B8A8-4735-8AA6-D6AECB9C9990}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F55BC932-B8A8-4735-8AA6-D6AECB9C9990}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F55BC932-B8A8-4735-8AA6-D6AECB9C9990}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F55BC932-B8A8-4735-8AA6-D6AECB9C9990}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FB4E48C2-DD93-4821-A4DE-D49464CFDCF1} = {E71AFEE6-D9CF-43C0-8F37-FC5F2F15164F}
+		{F55BC932-B8A8-4735-8AA6-D6AECB9C9990} = {E71AFEE6-D9CF-43C0-8F37-FC5F2F15164F}
 	EndGlobalSection
 EndGlobal

@@ -17,6 +17,8 @@ public interface IUserRepository
     /// </summary>
     Task<UserDal> GetUserByIdAsync(Guid id);
 
+    Task<string[]> GetUserNamesByIdsAsync(Guid[] ids);
+
     Task<UserDal> GetUserByUsernameAsync(string username);
     
     /// <summary>

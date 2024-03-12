@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Domain.AggregateModels;
+using Domain.Entities;
 
 namespace Domain.Interfaces;
 
@@ -13,4 +14,6 @@ public interface IStoreCreature
     Task RemoveAsync(Guid creatureId);
 
     Task<Creature> GetByIdAsync(Guid id);
+
+    Task<Creature[]> GetCreaturesBySearchAsync(string searchText, int maxCount);
 }

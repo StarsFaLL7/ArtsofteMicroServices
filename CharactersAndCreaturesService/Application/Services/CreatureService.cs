@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Domain.AggregateModels;
 using Domain.Entities;
 using Domain.Interfaces;
 
@@ -8,11 +9,13 @@ public class CreatureService : ICreatureService
 {
     private readonly IStoreCreature _storeCreature;
     private readonly IStoreCharacteristicsSet _storeCharacteristicsSet;
-    
-    public CreatureService(IStoreCreature storeCreature, IStoreCharacteristicsSet storeCharacteristicsSet)
+    private readonly ICreatureUserConnection _creatureUserConnection;
+    public CreatureService(IStoreCreature storeCreature, IStoreCharacteristicsSet storeCharacteristicsSet, 
+        ICreatureUserConnection creatureUserConnection)
     {
         _storeCreature = storeCreature;
         _storeCharacteristicsSet = storeCharacteristicsSet;
+        _creatureUserConnection = creatureUserConnection;
     }
     
     public async Task<Guid> CreateOrUpdateAsync(Creature creature)
@@ -49,6 +52,11 @@ public class CreatureService : ICreatureService
     public async Task<Creature> GetInfoAsync(Guid id)
     {
         return await _storeCreature.GetByIdAsync(id);
+    }
+
+    public async Task<CreatureWithUserName[]> GetCreaturesBySearchAsync(string searchText, int maxCount)
+    {
+        return await _creatureUserConnection.GetCreaturesBySearchAsync(searchText, maxCount);
     }
 
     public async Task<Creature> GetAggregatedInfoAsync(Guid id)
