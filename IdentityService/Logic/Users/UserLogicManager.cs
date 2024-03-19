@@ -47,6 +47,11 @@ internal class UserLogicManager : IUserLogicManager
         };
     }
 
+    public async Task<string[]> GetUsernamesByIdsAsync(Guid[] ids)
+    {
+        return await _userRepository.GetUserNamesByIdsAsync(ids);
+    }
+
     public async Task<ICollection<UserLogic>> GetUserFriendsAsync(Guid userId)
     {
         var friends = await _userRepository.GetUserFriendsAsync(userId);

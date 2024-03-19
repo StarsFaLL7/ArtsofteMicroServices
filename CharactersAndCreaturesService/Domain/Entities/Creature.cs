@@ -44,16 +44,16 @@ public class Creature : BaseDomainEntity<Guid>
     /// </summary>
     public required string Description { get; set; }
     
-    /// <summary>
-    /// Тип враждебности
-    /// </summary>
-    public required HostilityType HostilityId { get; set; }
-    
     public Guid CharacteristicsSetId { get; set; }
     /// <summary>
     /// Набор характеристик
     /// </summary>
     public CharacteristicsSet CharacteristicsSet { get; set; }
+
+    /// <summary>
+    /// Тип враждебности
+    /// </summary>
+    public required HostilityType Hostility { get; set; }
     
     public async Task SaveAsync(IStoreCreature storeCreature)
     {

@@ -28,6 +28,27 @@ public class CreatureController : ControllerBase
         return Ok(ConvertHelper.CreatureToInfoResponse(creature));
     }
     
+    [HttpGet("all")]
+    [ProducesResponseType<CreatureInfoResponse>(200)]
+    public async Task<IActionResult> GetCreatureBySearch([FromQuery] string search)
+    {
+        var creaturesWithUsernames = await _creatureService.GetCreaturesBySearchAsync(search, 10);
+        var res = creaturesWithUsernames.Select(c => new CreatureSearchInfoResponse
+        {
+            Id = c.Id,
+            UserName = c.UserName,
+            UserId = c.UserId,
+            ImagePath = c.ImagePath,
+            Name = c.Name,
+            MaxHealth = c.MaxHealth,
+            Health = c.Health,
+            Armor = c.Armor,
+            Description = c.Description,
+            Hostility = c.Hostility
+        }).ToArray();
+        return Ok(res);
+    }
+    
     [HttpPost]
     [ProducesResponseType<CreatureInfoResponse>(200)]
     public async Task<IActionResult> CreateCreature([FromBody] CreatureCreateRequest dto)
@@ -41,7 +62,7 @@ public class CreatureController : ControllerBase
             Health = 20,
             Armor = 10,
             Description = "",
-            HostilityId = HostilityType.Neutral,
+            Hostility = HostilityType.Neutral,
             Id = Guid.NewGuid()
         });
         var creature = await _creatureService.GetAggregatedInfoAsync(guid);
@@ -61,7 +82,7 @@ public class CreatureController : ControllerBase
             Health = dto.Health,
             Armor = dto.Armor,
             Description = dto.Description,
-            HostilityId = dto.HostilityId,
+            Hostility = dto.HostilityId,
             Id = dto.Id
         });
         return Ok(new StatusResponse

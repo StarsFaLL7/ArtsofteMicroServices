@@ -1,9 +1,11 @@
-﻿namespace ProjectCore.HttpLogic.Services.Interfaces;
+﻿using ProjectCore.HttpLogic.Models;
+
+namespace ProjectCore.HttpLogic.Services.Interfaces;
 
 /// <summary>
 /// Функционал для HTTP-соединения
 /// </summary>
-public interface IHttpConnectionService
+internal interface IHttpConnectionService
 {
     /// <summary>
     /// Создание клиента для HTTP-подключения
@@ -12,7 +14,7 @@ public interface IHttpConnectionService
     HttpClient CreateHttpClient(HttpConnectionData httpConnectionData);
 
     /// <summary>
-    /// Отправть HTTP-запрос
+    /// Отправить HTTP-запрос
     /// </summary>
     /// <exception cref="HttpConnectionException"></exception>
     Task<HttpResponseMessage> SendRequestAsync(

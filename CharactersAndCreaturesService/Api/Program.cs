@@ -1,5 +1,8 @@
 using Application;
+using IdentityConnectionLib;
 using Infrastructure;
+using ProjectCore.HttpLogic;
+using ProjectCore.TraceIdLogic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+builder.Services.AddHttpRequestService();
+builder.Services.AddIdentityConnectionService();
+builder.Services.TryAddTraceId();
 
 builder.Services.TryAddApplicationLayer();
 builder.Services.TryAddInfrastructure();
@@ -22,7 +29,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.MapControllers();
+
+app.UseTraceId();
 
 app.Run();

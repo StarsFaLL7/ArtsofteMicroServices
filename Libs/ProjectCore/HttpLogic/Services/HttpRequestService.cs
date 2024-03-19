@@ -1,156 +1,116 @@
-﻿using System.Net;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly;
+using ProjectCore.HttpLogic.Models;
 using ProjectCore.HttpLogic.Services.Interfaces;
+using ProjectCore.TraceIdLogic.Interfaces;
+using ContentType = ProjectCore.HttpLogic.Enums.ContentType;
 
 namespace ProjectCore.HttpLogic.Services;
 
-public enum ContentType
-{
-    ///
-    Unknown = 0,
-
-    ///
-    ApplicationJson = 1,
-
-    ///
-    XWwwFormUrlEncoded = 2,
-
-    ///
-    Binary = 3,
-
-    ///
-    ApplicationXml = 4,
-
-    ///
-    MultipartFormData = 5,
-
-    /// 
-    TextXml = 6,
-
-    /// 
-    TextPlain = 7,
-
-    ///
-    ApplicationJwt = 8
-}
-
-public record HttpRequestData
-{
-    /// <summary>
-    /// Тип метода
-    /// </summary>
-    public HttpMethod Method { get; set; }
-
-    /// <summary>
-    /// Адрес http + dns + path
-    /// </summary>
-    [Obsolete("Используй св-во Uri")]
-    public string Url { get; set; }
-
-    /// <summary>
-    /// Адрес запроса
-    /// </summary>
-    /// <remarks>
-    /// Значение здесь затрёт значение в <see cref="Url"/>, если оно там будет
-    /// </remarks>
-    public Uri Uri { set; get; }
-
-    /// <summary>
-    /// Тело метода
-    /// </summary>
-    public object Body { get; set; }
-    
-    /// <summary>
-    /// content-type, указываемый при запросе
-    /// </summary>
-    public ContentType ContentType { get; set; } = ContentType.ApplicationJson;
-
-    /// <summary>
-    /// Заголовки, передаваемые в запросе
-    /// </summary>
-    public IDictionary<string, string> HeaderDictionary { get; set; } = new Dictionary<string, string>();
-
-    /// <summary>
-    /// Параметры запроса
-    /// </summary>
-    [Obsolete("Используй QueryParameterList")]
-    public IDictionary<string, string> QueryParameterDictionary { get; set; } = new Dictionary<string, string>();
-
-    /// <summary>
-    /// Запрос будет сформирован с телом
-    /// </summary>
-    public bool IsWithBody => (Method == HttpMethod.Post || Method == HttpMethod.Put || Method == HttpMethod.Patch) && Body != null;
-
-    /// <summary>
-    /// Коллекция параметров запроса
-    /// </summary>
-    public ICollection<KeyValuePair<string, string>> QueryParameterList { get; set; } = new List<KeyValuePair<string, string>>();
-}
-
-public record BaseHttpResponse
-{
-    /// <summary>
-    /// Статус ответа
-    /// </summary>
-    public HttpStatusCode StatusCode { get; set; }
-
-    /// <summary>
-    /// Заголовки, передаваемые в ответе
-    /// </summary>
-    public HttpResponseHeaders Headers { get; set; }
-
-    /// <summary>
-    /// Заголовки контента
-    /// </summary>
-    public HttpContentHeaders ContentHeaders { get; init; }
-
-    /// <summary>
-    /// Является ли статус код успешным
-    /// </summary>
-    public bool IsSuccessStatusCode
-    {
-        get
-        {
-            var statusCode = (int)StatusCode;
-
-            return statusCode >= 200 && statusCode <= 299;
-        }
-    }
-}
-
-public record HttpResponse<TResponse> : BaseHttpResponse
-{
-    /// <summary>
-    /// Тело ответа
-    /// </summary>
-    public TResponse Body { get; set; }
-}
-
 /// <inheritdoc />
-public class HttpRequestService : IHttpRequestService
+internal class HttpRequestService : IHttpRequestService
 {
     private readonly IHttpConnectionService _httpConnectionService;
-
-    ///
+    private readonly IEnumerable<ITraceWriter> _traceWriterList;
+    
     public HttpRequestService(
-        IHttpConnectionService httpConnectionService)
+        IHttpConnectionService httpConnectionService,
+        IEnumerable<ITraceWriter> traceWriterList)
     {
         _httpConnectionService = httpConnectionService;
+        _traceWriterList = traceWriterList;
     }
-    
+
     /// <inheritdoc />
-    public async Task<HttpResponse<TResponse>> SendRequestAsync<TResponse>(HttpRequestData requestData, HttpConnectionData connectionData)
+    public async Task<HttpResponse<TResponse>> SendRequestAsync<TResponse>(HttpRequestData requestData, IAsyncPolicy<HttpResponseMessage> policy,
+        HttpConnectionData connectionData)
     {
         var client = _httpConnectionService.CreateHttpClient(connectionData);
-       // _httpConnectionService.SendRequestAsync();
-       return null;
+        var httpRequestMessage = new HttpRequestMessage
+        {
+            Content = PrepairContent(requestData.Body, requestData.ContentType),
+            Method = requestData.Method,
+            RequestUri = GetUriWithQuery(requestData.Uri, requestData.QueryParameterList)
+        };
+        
+        foreach (var headerKvPair in requestData.HeaderDictionary)
+        {
+            httpRequestMessage.Headers.Add(headerKvPair.Key, headerKvPair.Value);
+        }
+        
+        foreach (var traceWriter in _traceWriterList)
+        {
+            httpRequestMessage.Headers.Add(traceWriter.Name, traceWriter.GetValue());
+        }
+
+        var responseMessage = await policy.ExecuteAsync(async (token) =>
+        {
+            token.ThrowIfCancellationRequested();
+            var msg = CloneHttpRequestMessage(httpRequestMessage);
+            var res = await _httpConnectionService.SendRequestAsync(msg, client, default);
+            return res;
+        }, connectionData.CancellationToken);
+        
+        responseMessage.EnsureSuccessStatusCode();
+        
+        var contentString = await responseMessage.Content.ReadAsStringAsync();
+        var resultObject = JsonConvert.DeserializeObject<TResponse>(contentString);
+        return new HttpResponse<TResponse>()
+        {
+            Body = resultObject,
+            Headers = responseMessage.Headers,
+            StatusCode = responseMessage.StatusCode,
+            ContentHeaders = responseMessage.Content.Headers
+        };
+    }
+
+    private static Uri GetUriWithQuery(Uri uri, ICollection<KeyValuePair<string, string>> queryParameterList)
+    {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.Append(uri);
+        var isFirstQuery = true;
+        foreach (var queryKvPair in queryParameterList)
+        {
+            if (isFirstQuery)
+            {
+                stringBuilder.Append('?');
+                isFirstQuery = false;
+            }
+            else
+            {
+                stringBuilder.Append('&');
+            }
+            stringBuilder.Append(queryKvPair.Key);
+            stringBuilder.Append('=');
+            stringBuilder.Append(queryKvPair.Value);
+        }
+
+        return new Uri(stringBuilder.ToString());
     }
     
-     private static HttpContent PrepairContent(object body, ContentType contentType)
+    private HttpRequestMessage CloneHttpRequestMessage(HttpRequestMessage message)
+    {
+        var msg = new HttpRequestMessage
+        {
+            Content = message.Content,
+            Method = message.Method,
+            RequestUri = message.RequestUri,
+            Version = message.Version,
+            VersionPolicy = message.VersionPolicy,
+        };
+        foreach (var header in message.Headers)
+        {
+            msg.Headers.Add(header.Key, header.Value);
+        }
+
+        return msg;
+    }
+
+    private static HttpContent PrepairContent(object body, ContentType contentType)
     {
         switch (contentType)
         {
@@ -175,7 +135,8 @@ public class HttpRequestService : IHttpRequestService
             {
                 if (body is not IEnumerable<KeyValuePair<string, string>> list)
                 {
-                    throw new Exception($"Body for content type {contentType} must be {typeof(IEnumerable<KeyValuePair<string, string>>).Name}");
+                    throw new Exception(
+                        $"Body for content type {contentType} must be {typeof(IEnumerable<KeyValuePair<string, string>>).Name}");
                 }
 
                 return new FormUrlEncodedContent(list);
@@ -196,7 +157,7 @@ public class HttpRequestService : IHttpRequestService
                     throw new Exception($"Body for content type {contentType} must be {typeof(byte[]).Name}");
                 }
 
-                return new ByteArrayContent((byte[]) body);
+                return new ByteArrayContent((byte[])body);
             }
             case ContentType.TextXml:
             {

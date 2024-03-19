@@ -1,5 +1,6 @@
 ﻿using IdentityApi.Controllers.User.Requests;
 using IdentityApi.Controllers.User.Responses;
+using IdentityConnectionLib.DtoModels.UserNameList;
 using IdentityLogic.Users.Interfaces;
 using IdentityLogic.Users.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,18 @@ public class UserController : ControllerBase
             Friends = friends,
             Description = userInfo.Description,
             RegisterDate = userInfo.RegisterDate
+        });
+    }
+    
+    [HttpPost("usernames")]
+    [ProducesResponseType<UsernameIdentityApiResponse>(200)]
+    public async Task<ActionResult> GetUsernamesByIds([FromBody] UsernameIdentityApiRequest dto)
+    {
+        var res = await _userLogicManager.GetUsernamesByIdsAsync(dto.UserIds);
+        
+        return Ok(new UsernameIdentityApiResponse
+        {
+            Usernames = res
         });
     }
     

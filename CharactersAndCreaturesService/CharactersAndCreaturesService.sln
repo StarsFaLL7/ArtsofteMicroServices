@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{70E8E9D8-0D17-4EB5-8086-1B08CB6E557F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityConnectionLib", "..\Libs\IdentityConnectionLib\IdentityConnectionLib.csproj", "{AD0A56D6-12A5-4567-BC8E-957DE55DEF63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,8 +40,13 @@ Global
 		{70E8E9D8-0D17-4EB5-8086-1B08CB6E557F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70E8E9D8-0D17-4EB5-8086-1B08CB6E557F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70E8E9D8-0D17-4EB5-8086-1B08CB6E557F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD0A56D6-12A5-4567-BC8E-957DE55DEF63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD0A56D6-12A5-4567-BC8E-957DE55DEF63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD0A56D6-12A5-4567-BC8E-957DE55DEF63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD0A56D6-12A5-4567-BC8E-957DE55DEF63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3ED142BE-38B1-481D-8935-EAC5404F4299} = {4D7D67D0-D351-47FD-BAE5-35DF6CF342A6}
+		{AD0A56D6-12A5-4567-BC8E-957DE55DEF63} = {4D7D67D0-D351-47FD-BAE5-35DF6CF342A6}
 	EndGlobalSection
 EndGlobal

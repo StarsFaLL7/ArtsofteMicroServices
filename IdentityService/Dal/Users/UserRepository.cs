@@ -30,6 +30,11 @@ internal class UserRepository : IUserRepository
         throw new Exception("Пользователь не существует");
     }
 
+    public async Task<string[]> GetUserNamesByIdsAsync(Guid[] ids)
+    {
+        return ids.Select(id => UserStore[id].Username).ToArray();
+    }
+
     public async Task<UserDal> GetUserByUsernameAsync(string username)
     {
         var user = UserStore.Values.FirstOrDefault(u => u.Username == username);
