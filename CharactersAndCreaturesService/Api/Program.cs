@@ -2,6 +2,7 @@ using Application;
 using IdentityConnectionLib;
 using Infrastructure;
 using ProjectCore.HttpLogic;
+using ProjectCore.RPCLogic;
 using ProjectCore.TraceIdLogic;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpRequestService();
 builder.Services.AddIdentityConnectionService();
 builder.Services.TryAddTraceId();
+builder.Services.TryAddRpc();
 
 builder.Services.TryAddApplicationLayer();
 builder.Services.TryAddInfrastructure();
