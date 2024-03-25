@@ -1,5 +1,7 @@
+using IdentityApi.RpcApi;
 using IdentityDal;
 using IdentityLogic;
+using ProjectCore.RPCLogic;
 using ProjectCore.TraceIdLogic;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.TryAddLogic();
 builder.Services.TryAddDal();
 builder.Services.TryAddTraceId();
+builder.Services.TryAddRpc();
 
 var app = builder.Build();
 
@@ -26,9 +29,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseTraceId();
+app.UseRpcServer();
 
 app.MapControllers();
 
 app.Run();
-
-// TODO: Удалить пользователя из списка друзей (POST)
