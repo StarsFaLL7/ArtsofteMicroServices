@@ -12,10 +12,10 @@ public static class RpcServerStartup
     public static IApplicationBuilder UseRpcServer(this IApplicationBuilder builder)
     {
         var server = builder.ApplicationServices.GetRequiredService<IRpcServer>();
-        server.StartAsync("rpc_userNames", msg =>
+        server.StartAsync("rpc_userNames", (msg, scope) =>
         {
             var dto = JsonConvert.DeserializeObject<UsernameIdentityApiRequest>(msg);
-            var userManager = builder.ApplicationServices.GetRequiredService<IUserLogicManager>();
+            var userManager = scope.ServiceProvider.GetRequiredService<IUserLogicManager>();
             var namesArray = Task.Run(async () => await userManager.GetUsernamesByIdsAsync(dto.UserIds)).Result;
             var result = new UsernameIdentityApiResponse
             {

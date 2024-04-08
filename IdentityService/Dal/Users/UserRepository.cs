@@ -1,95 +1,92 @@
 ﻿using System.Collections.Concurrent;
 using IdentityDal.Users.Interfaces;
 using IdentityDal.Users.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace IdentityDal.Users;
 
 /// <inheritdoc />
 internal class UserRepository : IUserRepository
 {
-    private static readonly ConcurrentDictionary<Guid, UserDal> UserStore = new();
-    private static readonly List<FriendDal> FriendsStore = new();
-    
+    private readonly PostgresDbContext _dbContext;
+
+    public UserRepository(PostgresDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
     public async Task<Guid> CreateUserAsync(UserDal user)
     {
-        if (UserStore.TryAdd(user.Id, user))
+        if (!_dbContext.Users.Contains(user))
         {
-            return user.Id;
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
         }
 
-        throw new Exception("Пользователь уже существует");
+        return user.Id;
     }
 
     public async Task<UserDal> GetUserByIdAsync(Guid id)
     {
-        if (UserStore.TryGetValue(id, out var model))
-        {
-            return model;
-        }
-
-        throw new Exception("Пользователь не существует");
+        return _dbContext.Users
+            .Include(u => u.Friends)
+            .First(u => u.Id == id);
     }
 
     public async Task<string[]> GetUserNamesByIdsAsync(Guid[] ids)
     {
-        return ids.Select(id => UserStore[id].Username).ToArray();
+        return _dbContext.Users
+            .Where(u => ids.Contains(u.Id))
+            .Select(u => u.Username)
+            .ToArray();
     }
 
     public async Task<UserDal> GetUserByUsernameAsync(string username)
     {
-        var user = UserStore.Values.FirstOrDefault(u => u.Username == username);
-        if (user != null)
-        {
-            return user;
-        }
-        
-        throw new Exception("Пользователь не существует");
+        var user = _dbContext.Users
+            .Include(u => u.Friends)
+            .First(u => u.Username == username);
+        return user;
     }
 
     public async Task<ICollection<UserDal>> GetUserFriendsAsync(Guid userId)
     {
-        var result = new List<UserDal>();
-        if (UserStore.ContainsKey(userId))
-        {
-            return FriendsStore
-                .Where(f => f.User1Id == userId || f.User2Id == userId)
-                .Select(f => f.User1Id == userId ? UserStore[f.User2Id] : UserStore[f.User1Id])
-                .ToList();
-        }
-
-        throw new Exception("Пользователя не существует");
+        var user = _dbContext.Users
+            .Include(u => u.Friends)
+            .First(u => u.Id == userId);
+        return user.Friends;
     }
 
     public async Task DeleteUserAsync(Guid userId)
     {
-        if (UserStore.TryRemove(userId, out var model))
+        var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+        if (user == null)
         {
             return;
         }
-        
-        throw new Exception("Пользователя не существует");
+
+        _dbContext.Remove(user);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task<UserDal> UpdateUser(UserDal updatedModel)
     {
-        if (UserStore.TryGetValue(updatedModel.Id, out var currentModel))
-        {
-            currentModel.AvatarUrl = updatedModel.AvatarUrl;
-            currentModel.Username = updatedModel.Username;
-            currentModel.Description = updatedModel.Description;
-            currentModel.Email = updatedModel.Email;
-            return currentModel;
-        }
-        
-        throw new Exception("Пользователя не существует");
+        var user = _dbContext.Users.First(u => u.Id == updatedModel.Id);
+
+        user.AvatarUrl = updatedModel.AvatarUrl;
+        user.Username = updatedModel.Username;
+        user.Description = updatedModel.Description;
+        user.Email = updatedModel.Email;
+        return user;
     }
 
     public async Task MakeUsersFriendsAsync(Guid userId1, Guid userId2)
     {
-        FriendsStore.Add(new FriendDal
-        {
-            User1Id = userId1,
-            User2Id = userId2
-        });
+        var user1 = _dbContext.Users.Include(u => u.Friends).First(u => u.Id == userId1);
+        var user2 = _dbContext.Users.Include(u => u.Friends).First(u => u.Id == userId2);
+
+        user1.Friends.Add(user2);
+        user1.Friends.Add(user1);
+        await _dbContext.SaveChangesAsync();
     }
 }

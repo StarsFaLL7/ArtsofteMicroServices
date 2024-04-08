@@ -33,7 +33,7 @@ public class IdentityConnectionService : IIdentityConnectionService
         var portHttp = httpInfoSection.GetSection("Port");
         _httpHost = $"http://{hostnameHttp}:{portHttp}/";
         
-        if (configuration.GetSection("IdentityConnectionMethod").Value == "rpc")
+        if (configuration.GetSection("ConnectionLib").GetSection("Method").Value == "rpc")
         {
             _rpcClient = serviceProvider.GetRequiredService<IRpcClient>();
             _connectionType = ConnectionType.Rpc;

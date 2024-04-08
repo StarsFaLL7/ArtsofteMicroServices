@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using ProjectCore.RPCLogic.Interfaces;
 using RabbitMQ.Client;
@@ -10,7 +11,8 @@ namespace ProjectCore.RPCLogic.Services;
 internal class RpcServer : IRpcServer
 {
     private readonly ObjectPool<IConnection> _connectionPool;
-    
+    private readonly IServiceScopeFactory _scopeFactory;
+
     private IChannel _channel;
     private IConnection _connection;
     private EventingBasicConsumer _consumer;
@@ -18,12 +20,13 @@ internal class RpcServer : IRpcServer
     public bool IsRunning { get; private set; }
     
     
-    public RpcServer(ObjectPool<IConnection> connectionPool)
+    public RpcServer(ObjectPool<IConnection> connectionPool, IServiceScopeFactory scopeFactory)
     {
         _connectionPool = connectionPool;
+        _scopeFactory = scopeFactory;
     }
     
-    public async Task StartAsync(string queueName, Func<string, string> messageHandler)
+    public async Task StartAsync(string queueName, Func<string, IServiceScope, string> messageHandler)
     {
         if (IsRunning)
         {
@@ -52,8 +55,12 @@ internal class RpcServer : IRpcServer
 
             try
             {
-                var message = Encoding.UTF8.GetString(body);
-                response = messageHandler(message);
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var message = Encoding.UTF8.GetString(body);
+                    response = messageHandler(message, scope);
+                }
+                
             }
             finally
             {
