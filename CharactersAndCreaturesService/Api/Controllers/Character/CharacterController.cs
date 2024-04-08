@@ -48,9 +48,9 @@ public class CharacterController : ControllerBase
             Armor = 10,
             Race = "Human",
             Class = "Warrior",
-            Temperament = null,
-            Description = null,
-            History = null,
+            Temperament = "",
+            Description = "",
+            History = "",
             Abilities = null,
             InventoryItems = new List<InventoryItem>(),
             Id = Guid.NewGuid()

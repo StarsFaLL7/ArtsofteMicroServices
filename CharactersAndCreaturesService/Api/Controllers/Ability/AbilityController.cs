@@ -74,6 +74,7 @@ public class AbilityController : ControllerBase
             {
                 Id = a.Id,
                 Title = a.Title,
+                Damage = a.Damage,
                 ImagePath = a.ImagePath,
                 Description = a.Description,
                 IsHealing = a.IsHealing

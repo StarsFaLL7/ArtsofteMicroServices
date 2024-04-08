@@ -10,11 +10,13 @@ public static class InfrastructureStartup
     public static IServiceCollection TryAddInfrastructure(this IServiceCollection serviceCollection)
     {
         serviceCollection.TryAddScoped<IStoreAbility, AbilityRepository>();
-        serviceCollection.TryAddSingleton<IStoreCharacteristicsSet, CharacteristicsSetRepository>();
+        serviceCollection.TryAddScoped<IStoreCharacteristicsSet, CharacteristicsSetRepository>();
         serviceCollection.TryAddScoped<IStoreCharacter, CharacterRepository>();
-        serviceCollection.TryAddSingleton<IStoreCreature, CreatureRepository>();
+        serviceCollection.TryAddScoped<IStoreCreature, CreatureRepository>();
         serviceCollection.TryAddScoped<IStoreInventoryItem, InventoryItemRepository>();
         serviceCollection.TryAddScoped<IStoreSkillSet, SkillSetRepository>();
+
+        serviceCollection.AddDbContext<PostgresDbContext>();
         
         serviceCollection.TryAddScoped<ICreatureUserConnection, CreatureUserConnection>();
         return serviceCollection;

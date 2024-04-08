@@ -19,7 +19,7 @@ namespace IdentityConnectionLib.ConnectionServices;
 public class IdentityConnectionService : IIdentityConnectionService
 {
     private readonly IHttpRequestService? _httpRequestService;
-    private const string HttpHost = "http://localhost:5136/";
+    private readonly string _httpHost;
 
     private readonly IRpcClient? _rpcClient;
     private const string QueueUserNames = "rpc_userNames";
@@ -28,6 +28,11 @@ public class IdentityConnectionService : IIdentityConnectionService
     
     public IdentityConnectionService(IConfiguration configuration, IServiceProvider serviceProvider)
     {
+        var httpInfoSection = configuration.GetSection("ConnectionLib").GetSection("Http");
+        var hostnameHttp = httpInfoSection.GetSection("Host");
+        var portHttp = httpInfoSection.GetSection("Port");
+        _httpHost = $"http://{hostnameHttp}:{portHttp}/";
+        
         if (configuration.GetSection("IdentityConnectionMethod").Value == "rpc")
         {
             _rpcClient = serviceProvider.GetRequiredService<IRpcClient>();
@@ -69,7 +74,7 @@ public class IdentityConnectionService : IIdentityConnectionService
         var requestData = new HttpRequestData
         {
             Method = HttpMethod.Post,
-            Uri = new Uri(HttpHost + "api/user/usernames"),
+            Uri = new Uri(_httpHost + "api/user/usernames"),
             ContentType = ContentType.ApplicationJson,
             Body = apiRequest
         };
