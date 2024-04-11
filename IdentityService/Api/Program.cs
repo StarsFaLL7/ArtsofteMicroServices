@@ -1,4 +1,5 @@
 using IdentityApi.RpcApi;
+using IdentityApi.Saga;
 using IdentityDal;
 using IdentityLogic;
 using ProjectCore.RPCLogic;
@@ -16,6 +17,8 @@ builder.Services.TryAddLogic();
 builder.Services.TryAddDal();
 builder.Services.TryAddTraceId();
 builder.Services.TryAddRpc();
+
+builder.Services.AddSaga();
 
 var app = builder.Build();
 

@@ -1,4 +1,5 @@
-﻿using IdentityConnectionLib.DtoModels.UserNameList;
+﻿using IdentityConnectionLib.DtoModels.CreateNotifications;
+using IdentityConnectionLib.DtoModels.UserNameList;
 using IdentityConnectionLib.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,27 +20,33 @@ namespace IdentityConnectionLib.ConnectionServices;
 public class IdentityConnectionService : IIdentityConnectionService
 {
     private readonly IHttpRequestService? _httpRequestService;
-    private readonly string _httpHost;
+    private readonly string _httpHost = null!;
 
     private readonly IRpcClient? _rpcClient;
-    private const string QueueUserNames = "rpc_userNames";
-
+    private readonly string _queueUserNames = null!;
+    private readonly string _queueCreateNotification = null!;
+    
     private ConnectionType _connectionType;
     
     public IdentityConnectionService(IConfiguration configuration, IServiceProvider serviceProvider)
     {
-        var httpInfoSection = configuration.GetSection("ConnectionLib").GetSection("Http");
-        var hostnameHttp = httpInfoSection.GetSection("Host");
-        var portHttp = httpInfoSection.GetSection("Port");
-        _httpHost = $"http://{hostnameHttp}:{portHttp}/";
-        
-        if (configuration.GetSection("ConnectionLib").GetSection("Method").Value == "rpc")
+        var infoSection = configuration.GetSection("IdentityConnectionLib");
+        if (infoSection.GetSection("Method").Value == "rpc")
         {
+            var rpcInfoSection = infoSection.GetSection("Rpc");
+            _queueUserNames = rpcInfoSection.GetValue<string>("QueueGetUserNames");
+            _queueCreateNotification = rpcInfoSection.GetValue<string>("QueueCreateNotification");
+            
             _rpcClient = serviceProvider.GetRequiredService<IRpcClient>();
             _connectionType = ConnectionType.Rpc;
         }
         else
         {
+            var httpInfoSection = infoSection.GetSection("Http");
+            var hostnameHttp = httpInfoSection.GetValue<string>("Host");
+            var portHttp = httpInfoSection.GetValue<int>("Port");
+            _httpHost = $"http://{hostnameHttp}:{portHttp}/";
+            
             _httpRequestService = serviceProvider.GetRequiredService<IHttpRequestService>();
             _connectionType = ConnectionType.Http;
         }
@@ -58,12 +65,52 @@ public class IdentityConnectionService : IIdentityConnectionService
 
         throw new Exception($"Тип соединения не поддерживается: {_connectionType}");
     }
+
+    public async Task<CreateNotificationResponse[]> CreateNotificationForUserAsync(CreateNotificationRequest[] apiRequest)
+    {
+        if (_connectionType == ConnectionType.Rpc)
+        {
+            return await CreateNotificationByRpc(apiRequest);
+        }
+        if (_connectionType == ConnectionType.Http)
+        {
+            return await CreateNotificationByHttp(apiRequest);
+        }
+
+        throw new Exception($"Тип соединения не поддерживается: {_connectionType}");
+    }
     
+    private async Task<CreateNotificationResponse[]> CreateNotificationByRpc(CreateNotificationRequest[] apiRequest)
+    {
+        var message = JsonConvert.SerializeObject(apiRequest);
+        var policy = Policy.Timeout(5);
+        var response = await policy.Execute(async () => await _rpcClient.CallAsync(message, _queueCreateNotification));
+        var result = JsonConvert.DeserializeObject<CreateNotificationResponse[]>(response);
+        
+        return result;
+    }
+    
+    private async Task<CreateNotificationResponse[]> CreateNotificationByHttp(CreateNotificationRequest[] apiRequest)
+    {
+        var requestData = new HttpRequestData
+        {
+            Method = HttpMethod.Post,
+            Uri = new Uri(_httpHost + "api/notifications/create"),
+            ContentType = ContentType.ApplicationJson,
+            Body = apiRequest
+        };
+        
+        var retryPolicy = PollySettings.GetRetryPolicyForHttp(5, i => TimeSpan.FromSeconds(2 * i));
+        var res = await _httpRequestService.SendRequestAsync<CreateNotificationResponse[]>(requestData, retryPolicy);
+        
+        return res.Body;
+    }
+
     private async Task<UsernameIdentityApiResponse> GetUserNameListAsyncByRpc(UsernameIdentityApiRequest apiRequest)
     {
         var message = JsonConvert.SerializeObject(apiRequest);
         var policy = Policy.Timeout(5);
-        var response = await policy.Execute(async () => await _rpcClient.CallAsync(message, QueueUserNames));
+        var response = await policy.Execute(async () => await _rpcClient.CallAsync(message, _queueUserNames));
         var result = JsonConvert.DeserializeObject<UsernameIdentityApiResponse>(response);
         
         return result;

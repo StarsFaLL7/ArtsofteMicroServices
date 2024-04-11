@@ -46,7 +46,7 @@ public class NotificationManager : INotificationManager
             Title = notification.Title,
             Content = notification.Content,
             WasRead = notification.WasRead,
-            CreatedTime = notification.CreatedTime,
+            CreatedTime = notification.CreatedTime.ToUniversalTime(),
             Id = notification.Id
         };
         

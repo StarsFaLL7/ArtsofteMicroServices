@@ -26,7 +26,7 @@ internal class RpcServer : IRpcServer
         _scopeFactory = scopeFactory;
     }
     
-    public async Task StartAsync(string queueName, Func<string, IServiceScope, string> messageHandler)
+    public async Task StartAsync(string queueName, Func<string, IServiceScope, Task<string>> messageHandlerAsync)
     {
         if (IsRunning)
         {
@@ -35,12 +35,12 @@ internal class RpcServer : IRpcServer
         _connection = _connectionPool.Get();
         _channel = await _connection.CreateChannelAsync();
         
-        await _channel.QueueDeclareAsync("rpc_userNames", false, false, false);
+        await _channel.QueueDeclareAsync(queueName, false, false, false);
         
         await _channel.BasicQosAsync(0, 1, false);
         
         _consumer = new EventingBasicConsumer(_channel);
-        await _channel.BasicConsumeAsync("rpc_userNames", false, _consumer);
+        await _channel.BasicConsumeAsync(queueName, false, _consumer);
         IsRunning = true;
         _consumer.Received += async (model, basicDeliverEventArgs) =>
         {
@@ -58,7 +58,7 @@ internal class RpcServer : IRpcServer
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var message = Encoding.UTF8.GetString(body);
-                    response = messageHandler(message, scope);
+                    response = await messageHandlerAsync(message, scope);
                 }
                 
             }

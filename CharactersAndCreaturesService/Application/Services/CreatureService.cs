@@ -49,9 +49,10 @@ public class CreatureService : ICreatureService
         return creature.Id;
     }
 
-    public async Task<Creature> GetInfoAsync(Guid id)
+    public async Task<Creature[]> GetInfoAsync(params Guid[] id)
     {
-        return await _storeCreature.GetByIdAsync(id);
+        
+        return await _storeCreature.GetRangeByIdAsync(id);
     }
 
     public async Task<CreatureWithUserName[]> GetCreaturesBySearchAsync(string searchText, int maxCount)

@@ -23,6 +23,18 @@ public class InventoryItemRepository : IStoreInventoryItem
         await _dbContext.SaveChangesAsync();
     }
     
+    public async Task SaveRangeAsync(InventoryItem[] inventoryItems)
+    {
+        foreach (var item in inventoryItems)
+        {
+            if (!_dbContext.InventoryItems.Contains(item))
+            {
+                _dbContext.InventoryItems.Add(item);
+            }
+        }
+        
+        await _dbContext.SaveChangesAsync();
+    }
 
     public async Task RemoveAsync(Guid inventoryItemId)
     {

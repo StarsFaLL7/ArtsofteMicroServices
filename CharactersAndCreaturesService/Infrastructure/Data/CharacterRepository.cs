@@ -51,6 +51,11 @@ public class CharacterRepository : IStoreCharacter
         return _dbContext.Characters.First(c => c.Id == id);
     }
 
+    public async Task<Character[]> GetByIdsAsync(params Guid[] ids)
+    {
+        return _dbContext.Characters.Where(c => ids.Contains(c.Id)).ToArray();
+    }
+
     public async Task<InventoryItem[]> AddItemAsync(Guid characterId, InventoryItem item)
     {
         var character = _dbContext.Characters

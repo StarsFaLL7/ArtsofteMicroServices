@@ -6,6 +6,8 @@ public interface IStoreInventoryItem
 {
     Task SaveAsync(InventoryItem inventoryItem);
 
+    Task SaveRangeAsync(InventoryItem[] inventoryItems);
+    
     Task RemoveAsync(Guid inventoryItemId);
 
     Task<InventoryItem> GetByIdAsync(Guid id);

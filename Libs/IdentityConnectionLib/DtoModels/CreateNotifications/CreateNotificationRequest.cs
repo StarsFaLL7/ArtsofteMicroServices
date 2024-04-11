@@ -1,4 +1,4 @@
-﻿namespace IdentityApi.Controllers.Notification.Requests;
+﻿namespace IdentityConnectionLib.DtoModels.CreateNotifications;
 
 public class CreateNotificationRequest
 {

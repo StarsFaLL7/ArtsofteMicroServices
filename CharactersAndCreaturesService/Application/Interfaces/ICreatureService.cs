@@ -7,7 +7,7 @@ public interface ICreatureService
 {
     Task<Guid> CreateOrUpdateAsync(Creature creature);
 
-    Task<Creature> GetInfoAsync(Guid id);
+    Task<Creature[]> GetInfoAsync(params Guid[] id);
 
     Task<CreatureWithUserName[]> GetCreaturesBySearchAsync(string searchText, int maxCount);
     

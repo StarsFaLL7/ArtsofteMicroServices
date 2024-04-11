@@ -9,7 +9,7 @@ namespace Domain.Entities;
 public class InventoryItem : BaseDomainEntity<Guid>
 {
     /// <summary>
-    /// Уникальный идентификатор пекрсонажа, у кого есть данный предмет
+    /// Уникальный идентификатор персонажа, у кого есть данный предмет
     /// </summary>
     public required Guid CharacterId { get; set; }
     

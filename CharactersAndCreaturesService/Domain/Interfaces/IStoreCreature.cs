@@ -14,6 +14,8 @@ public interface IStoreCreature
     Task RemoveAsync(Guid creatureId);
 
     Task<Creature> GetByIdAsync(Guid id);
+    
+    Task<Creature[]> GetRangeByIdAsync(params Guid[] id);
 
     Task<Creature[]> GetCreaturesBySearchAsync(string searchText, int maxCount);
 }

@@ -52,6 +52,11 @@ public class CreatureRepository : IStoreCreature
         return _dbContext.Creatures.First(c => c.Id == id);
     }
 
+    public async Task<Creature[]> GetRangeByIdAsync(params Guid[] ids)
+    {
+        return _dbContext.Creatures.Where(c => ids.Contains(c.Id)).ToArray();
+    }
+
     public async Task<Creature[]> GetCreaturesBySearchAsync(string searchText, int maxCount)
     {
         var lowerSearch = searchText.ToLower();

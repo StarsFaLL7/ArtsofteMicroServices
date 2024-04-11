@@ -5,7 +5,7 @@ namespace ProjectCore.RPCLogic.Interfaces;
 
 public interface IRpcServer : IDisposable
 {
-    Task StartAsync(string queueName, Func<string, IServiceScope, string> messageHandler);
+    Task StartAsync(string queueName, Func<string, IServiceScope, Task<string>> messageHandlerAsync);
     
     Task CloseConnectionAsync();
 }

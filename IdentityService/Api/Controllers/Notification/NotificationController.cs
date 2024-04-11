@@ -1,7 +1,9 @@
 ﻿using IdentityApi.Controllers.Notification.Responses;
 using IdentityApi.Controllers.Notification.Requests;
+using IdentityConnectionLib.DtoModels.CreateNotifications;
 using IdentityLogic.Notifications.Interfaces;
 using IdentityLogic.Notifications.Models;
+using IdentityLogic.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityApi.Controllers.Notification;
@@ -10,10 +12,12 @@ namespace IdentityApi.Controllers.Notification;
 public class NotificationController : ControllerBase
 {
     private readonly INotificationManager _notificationManager;
-    
-    public NotificationController(INotificationManager notificationManager)
+    private readonly IUserLogicManager _userLogicManager;
+
+    public NotificationController(INotificationManager notificationManager, IUserLogicManager userLogicManager)
     {
         _notificationManager = notificationManager;
+        _userLogicManager = userLogicManager;
     }
     
     [ProducesResponseType<NotificationsListResponse>(200)]
@@ -67,5 +71,33 @@ public class NotificationController : ControllerBase
         };
         await _notificationManager.CreateNewNotificationAsync(logicModel);
         return Ok();
+    }
+    
+    [ProducesResponseType<CreateNotificationResponse>(200)]
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateForApiAsync([FromBody] CreateNotificationRequest[] dto)
+    {
+        var userNames = await _userLogicManager.GetUsernamesByIdsAsync(dto.Select(r => r.UserId).ToArray());
+        var ids = new List<Guid>();
+        foreach (var notif in dto)
+        {
+            var logicModel = new NotificationLogic
+            {
+                Id = Guid.NewGuid(),
+                UserId = notif.UserId,
+                Title = notif.Title,
+                Content = notif.Content,
+                WasRead = false,
+                CreatedTime = DateTime.Now
+            };
+            ids.Add(await _notificationManager.CreateNewNotificationAsync(logicModel));
+        }
+
+        var res = ids.Select((id, i) => new CreateNotificationResponse
+        {
+            Id = id,
+            Username = userNames[i]
+        }).ToArray();
+        return Ok(res);
     }
 }

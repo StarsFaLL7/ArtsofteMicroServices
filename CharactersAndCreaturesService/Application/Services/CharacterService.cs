@@ -97,7 +97,12 @@ public class CharacterService : ICharacterService
         character.InventoryItems = await _storeInventoryItem.GetAllByCharacterId(character.Id);
         return character;
     }
-    
+
+    public async Task<Character[]> GetSimpleInfoAsync(params Guid[] ids)
+    {
+        return await _storeCharacter.GetByIdsAsync(ids);
+    }
+
     public async Task<Character> GetInfoAsync(Guid id)
     {
         return await _storeCharacter.GetByIdAsync(id);

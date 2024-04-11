@@ -14,5 +14,7 @@ public interface IStoreCharacter
 
     Task<Character> GetByIdAsync(Guid id);
     
+    Task<Character[]> GetByIdsAsync(params Guid[] ids);
+    
     Task<InventoryItem[]> AddItemAsync(Guid characterId, InventoryItem item);
 }

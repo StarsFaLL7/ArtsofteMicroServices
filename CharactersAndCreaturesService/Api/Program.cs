@@ -1,3 +1,5 @@
+using Api.RpcApi;
+using Api.Saga;
 using Application;
 using IdentityConnectionLib;
 using Infrastructure;
@@ -18,6 +20,8 @@ builder.Services.AddIdentityConnectionService();
 builder.Services.TryAddTraceId();
 builder.Services.TryAddRpc();
 
+builder.Services.AddSaga();
+
 builder.Services.TryAddApplicationLayer();
 builder.Services.TryAddInfrastructure();
 
@@ -29,10 +33,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
 app.MapControllers();
 
 app.UseTraceId();
+app.UseRpcServerConnectionLib();
 
 app.Run();

@@ -13,7 +13,7 @@ public class RpcConnectionPool : ObjectPool<IConnection>
     
     public RpcConnectionPool(IConfiguration configuration)
     {
-        var rpcSection = configuration.GetSection("ConnectionLib").GetSection("Rpc");
+        var rpcSection = configuration.GetSection("RabbitMQ");
         var host = rpcSection.GetValue<string>("Host");
         var port = rpcSection.GetValue<int>("Port");
 
@@ -31,7 +31,7 @@ public class RpcConnectionPool : ObjectPool<IConnection>
             return connection;
         }
 
-        var newConnection = _connectionFactory.CreateConnectionAsync().GetAwaiter().GetResult();
+        var newConnection = _connectionFactory.CreateConnectionAsync().Result;
         return newConnection;
     }
     
