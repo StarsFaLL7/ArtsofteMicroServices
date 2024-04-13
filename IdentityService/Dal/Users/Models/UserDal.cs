@@ -34,5 +34,9 @@ public record UserDal : BaseEntityDal<Guid>
     /// <summary>
     /// Дата регистрации пользователя
     /// </summary>
-    public DateOnly RegisterDate { get; init; }
+    public DateOnly RegisterDate { get; set; }
+    
+    //public List<UserUserConnection> UserUserConnections { get; } = [];
+
+    public List<UserDal> Friends { get; set; } = [];
 }

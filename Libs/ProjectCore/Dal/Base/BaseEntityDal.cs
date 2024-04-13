@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ProjectCore.Dal.Base;
 
 /// <summary>
@@ -9,5 +11,6 @@ public record BaseEntityDal<T>
     /// <summary>
     /// уникальный идентфиикатор сущности
     /// </summary>
+    [Key]
     public required T Id { get; init; }
 }

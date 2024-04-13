@@ -6,25 +6,43 @@ namespace Infrastructure.Data;
 
 public class CharacteristicsSetRepository : IStoreCharacteristicsSet
 {
-    private readonly ConcurrentDictionary<Guid, CharacteristicsSet> _store = new();
-    
+    private readonly PostgresDbContext _dbContext;
+
+    public CharacteristicsSetRepository(PostgresDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
     public async Task SaveAsync(CharacteristicsSet characteristicsSet)
     {
-        _store[characteristicsSet.Id] = characteristicsSet;
+        if (!_dbContext.CharacteristicsSets.Contains(characteristicsSet))
+        {
+            _dbContext.CharacteristicsSets.Add(characteristicsSet);
+        }
+
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task RemoveAsync(Guid characteristicsSetId)
     {
-        _store.TryRemove(characteristicsSetId, out _);
+        var set = _dbContext.CharacteristicsSets
+            .FirstOrDefault(creature => creature.Id == characteristicsSetId);
+        if (set == null)
+        {
+            return;
+        }
+        _dbContext.CharacteristicsSets.Remove(set);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task<CharacteristicsSet> GetByIdAsync(Guid id)
     {
-        return _store[id];
+        return _dbContext.CharacteristicsSets.First(set => set.Id == id);
     }
 
     public async Task<bool> IsExist(Guid id)
     {
-        return _store.ContainsKey(id);
+        var set = _dbContext.CharacteristicsSets.FirstOrDefault(set => set.Id == id);
+        return set != null;
     }
 }

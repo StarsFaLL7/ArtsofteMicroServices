@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Security.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.ObjectPool;
 using RabbitMQ.Client;
@@ -12,7 +13,15 @@ public class RpcConnectionPool : ObjectPool<IConnection>
     
     public RpcConnectionPool(IConfiguration configuration)
     {
-        _connectionFactory = new ConnectionFactory();
+        var rpcSection = configuration.GetSection("RabbitMQ");
+        var host = rpcSection.GetValue<string>("Host");
+        var port = rpcSection.GetValue<int>("Port");
+
+        _connectionFactory = new ConnectionFactory
+        {
+            HostName = host,
+            Port = port,
+        };
     }
     
     public override IConnection Get()
@@ -25,7 +34,7 @@ public class RpcConnectionPool : ObjectPool<IConnection>
         var newConnection = _connectionFactory.CreateConnectionAsync().Result;
         return newConnection;
     }
-
+    
     public override void Return(IConnection obj)
     {
         _connections.Add(obj);

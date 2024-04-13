@@ -7,6 +7,8 @@ public interface ICharacterService
     Task<Guid> CreateOrUpdateAsync(Character character);
 
     Task<Character> GetAggregatedInfoAsync(Guid id);
+    
+    Task<Character[]> GetSimpleInfoAsync(params Guid[] ids);
 
     Task DeleteAsync(Guid id);
 

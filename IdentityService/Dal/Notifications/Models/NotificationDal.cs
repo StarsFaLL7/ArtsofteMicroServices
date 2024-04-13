@@ -1,4 +1,7 @@
-﻿using ProjectCore.Dal.Base;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using IdentityDal.Users.Models;
+using ProjectCore.Dal.Base;
 
 namespace IdentityDal.Notifications.Models;
 
@@ -11,6 +14,8 @@ public record NotificationDal : BaseEntityDal<Guid>
     /// Id пользователя, которому пришло уведомление
     /// </summary>
     public required Guid UserId { get; init; }
+    [ForeignKey("UserId")]
+    public UserDal User { get; set; }
     
     /// <summary>
     /// Заголовок уведомления

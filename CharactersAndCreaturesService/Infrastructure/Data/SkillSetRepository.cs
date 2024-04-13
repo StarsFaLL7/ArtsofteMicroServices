@@ -4,22 +4,38 @@ using Domain.Interfaces;
 
 namespace Infrastructure.Data;
 
-public class SkillSetRepository : IStoreSkillSet
+internal class SkillSetRepository : IStoreSkillSet
 {
-    private readonly ConcurrentDictionary<Guid, SkillSet> _store = new ();
-    
+    private readonly PostgresDbContext _dbContext;
+
+    public SkillSetRepository(PostgresDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
     public async Task SaveAsync(SkillSet skillSet)
     {
-        _store[skillSet.Id] = skillSet;
+        if (!_dbContext.SkillSets.Contains(skillSet))
+        {
+            _dbContext.SkillSets.Add(skillSet);
+        }
+
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task RemoveAsync(Guid skillSetId)
     {
-        _store.TryRemove(skillSetId, out _);
+        var item = _dbContext.SkillSets.FirstOrDefault(s => s.Id == skillSetId);
+        if (item == null)
+        {
+            return;
+        }
+        _dbContext.SkillSets.Remove(item);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task<SkillSet> GetByIdAsync(Guid id)
     {
-        return _store[id];
+        return _dbContext.SkillSets.First(s => s.Id == id);
     }
 }

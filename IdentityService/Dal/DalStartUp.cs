@@ -16,6 +16,7 @@ public static class DalStartUp
         serviceCollection.TryAddScoped<IUserRepository, UserRepository>();
         serviceCollection.TryAddScoped<IFriendRequestRepository, FriendRequestRepository>();
         serviceCollection.TryAddScoped<INotificationRepository, NotificationRepository>();
+        serviceCollection.AddDbContext<PostgresDbContext>();
         return serviceCollection;
     }
 }

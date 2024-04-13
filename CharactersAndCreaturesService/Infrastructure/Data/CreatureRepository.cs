@@ -7,40 +7,59 @@ namespace Infrastructure.Data;
 
 public class CreatureRepository : IStoreCreature
 {
-    private readonly ConcurrentDictionary<Guid, Creature> _store = new();
+    private readonly PostgresDbContext _dbContext;
+
+    public CreatureRepository(PostgresDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public async Task<bool> IsExistAsync(Guid creatureId)
     {
-        return _store.ContainsKey(creatureId);
+        var creature = _dbContext.Creatures.FirstOrDefault(c => c.Id == creatureId);
+        return creature != null;
     }
 
     public async Task SaveAsync(Creature creature)
     {
-        _store[creature.Id] = creature;
+        if (!_dbContext.Creatures.Contains(creature))
+        {
+            _dbContext.Creatures.Add(creature);
+        }
+
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task<Creature[]> GetPlayersCreaturesAsync(Guid userId)
     {
-        var res = _store.Values.Where(c => c.UserId == userId).ToArray();
+        var res = _dbContext.Creatures.Where(c => c.UserId == userId).ToArray();
         return res;
     }
 
     public async Task RemoveAsync(Guid creatureId)
     {
-        if (!_store.TryRemove(creatureId, out _))
+        var creature = _dbContext.Creatures.FirstOrDefault(creature => creature.Id == creatureId);
+        if (creature == null)
         {
-            throw new Exception("Существо не найдено");
+            return;
         }
+        _dbContext.Creatures.Remove(creature);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task<Creature> GetByIdAsync(Guid id)
     {
-        return _store[id];
+        return _dbContext.Creatures.First(c => c.Id == id);
+    }
+
+    public async Task<Creature[]> GetRangeByIdAsync(params Guid[] ids)
+    {
+        return _dbContext.Creatures.Where(c => ids.Contains(c.Id)).ToArray();
     }
 
     public async Task<Creature[]> GetCreaturesBySearchAsync(string searchText, int maxCount)
     {
         var lowerSearch = searchText.ToLower();
-        return _store.Values.Where(c => c.Name.ToLower().Contains(lowerSearch)).ToArray();
+        return _dbContext.Creatures.Where(c => c.Name.ToLower().Contains(lowerSearch)).ToArray();
     }
 }

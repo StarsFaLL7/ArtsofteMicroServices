@@ -6,37 +6,45 @@ namespace IdentityDal.Notifications;
 
 public class NotificationRepository : INotificationRepository
 {
-    private readonly ConcurrentDictionary<Guid, NotificationDal> _store = new();
-    
+    private readonly PostgresDbContext _dbContext;
+
+    public NotificationRepository(PostgresDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
     public async Task<NotificationDal[]> GetUserNotificationsAsync(Guid userId, bool onlyNew = false)
     {
-        return _store.Where(kvPair => kvPair.Value.UserId == userId && !(onlyNew && kvPair.Value.WasRead))
-            .Select(kvPair => kvPair.Value)
+        return _dbContext.Notifications
+            .Where(u => u.UserId == userId && !(onlyNew && u.WasRead))
             .ToArray();
     }
 
     public async Task MarkNotificationsAsReadAsync(params Guid[] notificationsIds)
     {
-        foreach (var id in notificationsIds)
+        var notifications = _dbContext.Notifications.Where(n => notificationsIds.Contains(n.Id));
+        foreach (var notification in notifications)
         {
-            _store[id].WasRead = true;
+            notification.WasRead = true;
         }
+
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task DeleteNotificationAsync(Guid notificationId)
     {
-        if (!_store.TryRemove(notificationId, out var _))
+        var notification = _dbContext.Notifications.FirstOrDefault(n => n.Id == notificationId);
+        if (notification != null)
         {
-            throw new Exception("Уведомление не найдено");
+            _dbContext.Notifications.Remove(notification);
+            await _dbContext.SaveChangesAsync();
         }
     }
 
     public async Task<Guid> CreateNewNotificationAsync(NotificationDal notification)
     {
-        if (!_store.TryAdd(notification.Id, notification))
-        {
-            throw new Exception("Уведомление уже было создано ранее");
-        }
+        _dbContext.Notifications.Add(notification);
+        await _dbContext.SaveChangesAsync();
         return notification.Id;
     }
 }
